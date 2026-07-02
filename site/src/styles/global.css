@@ -1,0 +1,84 @@
+/* Betflow design tokens: risk-terminal aesthetic.
+   Slate ink ground (from the SR mark's S), bronze signature accent (the R).
+   Archivo for display and UI, Spline Sans Mono for every number. */
+
+:root {
+  /* ground */
+  --ink-0: #0e1114;
+  --ink-1: #14181d;
+  --ink-2: #1b2128;
+  --ink-3: #232b34;
+  --line-0: #2b333d;
+  --line-1: #39434f;
+
+  /* text */
+  --tx-0: #e8e4dc;
+  --tx-1: #a8b0b9;
+  --tx-2: #6d7681;
+
+  /* signature */
+  --bronze-0: #a17c52;
+  --bronze-1: #c29a6b;
+  --bronze-2: #e0c9a6;
+  --bronze-dim: rgba(161, 124, 82, 0.14);
+
+  /* semantics (tuned for dark ground) */
+  --pos: #56a97a;
+  --neg: #c96f5e;
+  --warn: #d3a94f;
+
+  --font-display: 'Archivo Variable', sans-serif;
+  --font-mono: 'Spline Sans Mono', ui-monospace, monospace;
+
+  font-family: var(--font-display);
+  color: var(--tx-0);
+  background: var(--ink-0);
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--bronze-0);
+  color: var(--ink-0);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--bronze-1);
+  text-decoration: none;
+}
