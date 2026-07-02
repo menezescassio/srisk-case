@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Gate } from './gate/Gate'
 import { verifyPassword } from './lib/artifacts'
 import { loadPayload, type Payload } from './lib/payload'
@@ -7,12 +7,16 @@ import { AppProvider } from './state/AppContext'
 import { Layout, type ViewKey } from './components/Layout'
 import { FilterBar } from './components/FilterBar'
 import { Overview } from './views/Overview'
-import { Flow } from './views/Flow'
-import { Concentration } from './views/Concentration'
-import { Risk } from './views/Risk'
-import { Findings } from './views/Findings'
 import './shell.css'
 import './dash.css'
+
+// chart-heavy views load on demand; Overview paints instantly
+const Flow = lazy(() => import('./views/Flow').then((m) => ({ default: m.Flow })))
+const Concentration = lazy(() =>
+  import('./views/Concentration').then((m) => ({ default: m.Concentration })),
+)
+const Risk = lazy(() => import('./views/Risk').then((m) => ({ default: m.Risk })))
+const Findings = lazy(() => import('./views/Findings').then((m) => ({ default: m.Findings })))
 
 type State =
   | { kind: 'checking' }
@@ -83,11 +87,13 @@ export default function App() {
     <AppProvider payload={state.payload}>
       <Layout view={view} onView={setView} onLock={lock}>
         <FilterBar />
-        {view === 'overview' && <Overview />}
-        {view === 'flow' && <Flow />}
-        {view === 'concentration' && <Concentration />}
-        {view === 'risk' && <Risk />}
-        {view === 'findings' && <Findings />}
+        <Suspense fallback={<div className="boot boot--busy"><span className="num">loading view…</span></div>}>
+          {view === 'overview' && <Overview />}
+          {view === 'flow' && <Flow />}
+          {view === 'concentration' && <Concentration />}
+          {view === 'risk' && <Risk />}
+          {view === 'findings' && <Findings />}
+        </Suspense>
       </Layout>
     </AppProvider>
   )

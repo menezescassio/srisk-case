@@ -18,3 +18,6 @@ test-pipeline:  ## pipeline unit tests (synthetic fixtures only)
 
 site-build:
 	cd site && npm run build
+
+consistency:  ## verify identical headline numbers across all surfaces
+	node scripts/consistency.mjs
