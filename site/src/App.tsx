@@ -8,6 +8,7 @@ import { Layout, type ViewKey } from './components/Layout'
 import { FilterBar } from './components/FilterBar'
 import { Overview } from './views/Overview'
 import { Flow } from './views/Flow'
+import { Concentration } from './views/Concentration'
 import './shell.css'
 import './dash.css'
 
@@ -82,7 +83,8 @@ export default function App() {
         <FilterBar />
         {view === 'overview' && <Overview />}
         {view === 'flow' && <Flow />}
-        {view !== 'overview' && view !== 'flow' && (
+        {view === 'concentration' && <Concentration />}
+        {view !== 'overview' && view !== 'flow' && view !== 'concentration' && (
           <div className="view">
             <div className="card">
               <h3 className="card__title">On its way</h3>
