@@ -5,6 +5,7 @@ Usage: uv run python -m betflow.run   (from pipeline/)
 
 from __future__ import annotations
 
+from .aggregate import build_payload, write_payload
 from .config import FILES, OUT_DIR
 from .dedup import dedupe
 from .ingest import load_export
@@ -37,8 +38,12 @@ def main() -> None:
     slips.to_parquet(OUT_DIR / "slips.parquet", index=False)
     legs.to_parquet(OUT_DIR / "legs.parquet", index=False)
 
-    payload = build_recon_payload(recon, legs, slips, dup_stats)
-    write_qa_report(payload)
+    recon_payload = build_recon_payload(recon, legs, slips, dup_stats)
+    write_qa_report(recon_payload)
+
+    print("building dashboard payload...")
+    write_payload(build_payload(slips, legs, recon_payload))
+    payload = recon_payload
 
     print("\nheadline (slip-level, EUR):")
     print(f"  turnover   {payload['turnover_eur']:>14,.0f}")

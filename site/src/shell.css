@@ -3,6 +3,26 @@
   background: var(--ink-0);
 }
 
+.boot--busy {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 16px;
+  color: var(--tx-2);
+  font-size: 13px;
+}
+
+.shell__client {
+  margin-left: 10px;
+  padding: 3px 9px;
+  border: 1px solid var(--line-1);
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tx-1);
+}
+
 .shell {
   min-height: 100%;
   display: flex;
