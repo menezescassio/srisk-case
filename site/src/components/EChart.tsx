@@ -41,21 +41,15 @@ interface Props {
   option: EChartsCoreOption
   height?: number
   onClick?: (params: unknown) => void
-  /** Charts sharing a group sync their zoom/pan (via echarts.connect). */
-  group?: string
 }
 
-export function EChart({ option, height = 300, onClick, group }: Props) {
+export function EChart({ option, height = 300, onClick }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const chart = useRef<echarts.ECharts | null>(null)
 
   useEffect(() => {
     if (!ref.current) return
     chart.current = echarts.init(ref.current)
-    if (group) {
-      chart.current.group = group
-      echarts.connect(group)
-    }
     const obs = new ResizeObserver(() => chart.current?.resize())
     obs.observe(ref.current)
     return () => {
@@ -63,7 +57,7 @@ export function EChart({ option, height = 300, onClick, group }: Props) {
       chart.current?.dispose()
       chart.current = null
     }
-  }, [group])
+  }, [])
 
   useEffect(() => {
     chart.current?.setOption(option, { notMerge: true })

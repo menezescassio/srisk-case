@@ -97,7 +97,7 @@ export function Flow() {
     const x = ggrDaily.buckets.map((b) => b * 1000)
     return {
       textStyle: CHART_TEXT,
-      grid: { left: 58, right: 16, top: 10, bottom: 24 },
+      grid: { left: 58, right: 16, top: 10, bottom: 44 },
       tooltip: { trigger: 'axis', ...TOOLTIP_STYLE, valueFormatter: (v: number) => fmtEurCompact(v) },
       xAxis: {
         type: 'time',
@@ -110,8 +110,11 @@ export function Flow() {
         axisLabel: { ...CHART_TEXT, formatter: fmtEurCompact },
         splitLine: { lineStyle: { color: GRID_LINE } },
       },
-      // sliderless zoom: this chart follows the Betflow slider via the shared group
-      dataZoom: [{ type: 'inside' }],
+      // its own independent range slider (not linked to the Betflow chart)
+      dataZoom: [
+        { type: 'inside' },
+        { type: 'slider', height: 16, bottom: 6, borderColor: GRID_LINE, backgroundColor: 'transparent', fillerColor: 'rgba(161,124,82,0.15)', handleStyle: { color: '#BA7F3B' }, textStyle: CHART_TEXT },
+      ],
       series: [
         {
           name: 'GGR',
@@ -214,20 +217,19 @@ export function Flow() {
             </button>
           </div>
         </div>
-        <EChart option={mainOption} height={340} group="betflow-time" />
+        <EChart option={mainOption} height={340} />
         <p className="card__note">
           {METRIC_LABEL[metric]}, {hourly ? 'hourly' : 'daily'} buckets, respecting the
           global filters. Drag the slider or scroll to zoom; the tournament starts 2026-06-11.
-          The Daily GGR chart below shares this range.
         </p>
       </div>
 
       <div className="card">
         <h3 className="card__title">Daily GGR (operator view)</h3>
-        <EChart option={ggrOption} height={180} group="betflow-time" />
+        <EChart option={ggrOption} height={215} />
         <p className="card__note">
-          Green days the book won, red days customers won. Zoom follows the Betflow
-          range slider above. Settlement is as of the later export (2026-06-24).
+          Green days the book won, red days customers won. This chart has its own range
+          slider, independent of the one above. Settlement is as of the later export (2026-06-24).
         </p>
       </div>
 
