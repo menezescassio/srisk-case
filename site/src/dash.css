@@ -59,10 +59,16 @@
   align-items: center;
 }
 
+/* the client wordmark is dark ink on transparent, so give it a light pill */
+.dash__client:has(img) {
+  padding: 4px 11px;
+  background: #f4f1ea;
+  border-color: transparent;
+}
+
 .dash__client img {
-  height: 14px;
+  height: 13px;
   display: block;
-  filter: brightness(1.15);
 }
 
 .dash__nav {
