@@ -187,9 +187,11 @@
   {% endif %}
 {% endmacro %}
 
-{{ section(f.sections[0]) }}
+{% macro byid(id) %}{{ section(f.sections | selectattr('id', 'equalto', id) | first) }}{% endmacro %}
 
-{{ section(f.sections[1]) }}
+{{ byid('summary') }}
+
+{{ byid('data') }}
 
 <div class="avoid">
 <table>
@@ -210,7 +212,9 @@
 </table>
 </div>
 
-{{ section(f.sections[2]) }}
+{{ byid('bettype_quality') }}
+
+{{ byid('flow') }}
 
 <div class="avoid">
 <table>
@@ -250,7 +254,7 @@
 </table>
 </div>
 
-{{ section(f.sections[3]) }}
+{{ byid('risk') }}
 
 <div class="avoid">
 <table>
@@ -274,9 +278,9 @@
 </table>
 </div>
 
-{{ section(f.sections[4]) }}
-{{ section(f.sections[5]) }}
-{{ section(f.sections[6]) }}
+{{ byid('commercial') }}
+{{ byid('limitations') }}
+{{ byid('next') }}
 
 <div class="sig">
   {{ f.signature }}<br>

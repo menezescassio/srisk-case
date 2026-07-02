@@ -62,7 +62,12 @@ export function Overview() {
       </div>
 
       <div className="grid2">
-        <BreakdownBar title="Stake by bet type" rows={byType} colors={typeColors} />
+        <BreakdownBar
+          title="Stake by bet type"
+          rows={byType}
+          colors={typeColors}
+          note="Read COMBINED with care: it blends single-selection bets flagged combined, same-game builders that arrive as a repeated identical leg, and true cross-game multis (which the book beats comfortably). See Findings for the two data-quality flags behind this."
+        />
         <div className="card">
           <h3 className="card__title">Top competitions</h3>
           <table className="tbl">
