@@ -1,0 +1,43 @@
+# ============================================================
+# SECURITY: this repo is PUBLIC. Raw client data never leaves
+# the local machine. Only encrypted artifacts (*.enc) are
+# committed. See README.md (Security model).
+# ============================================================
+
+# Raw client data and any local data workspace (root-level only;
+# encrypted payloads live under site/public/payload/)
+/data/
+
+# Spreadsheets and tabular exports, anywhere, ever
+*.xlsx
+*.xls
+*.csv
+
+# PDFs: the case brief and the locally built report are plaintext.
+# Only the encrypted report (report.pdf.enc) may be committed.
+*.pdf
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+pipeline/out/
+
+# Node
+node_modules/
+dist/
+*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
