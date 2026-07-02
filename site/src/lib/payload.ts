@@ -43,6 +43,8 @@ export interface Recon {
   }
   phases: Record<string, { slips: number; stake_eur: number }>
   lineup_proxy_minutes: number
+  dedup_union_rows: number
+  excluded_pretournament: { rows: number; stake_eur: number; rule: string }
 }
 
 export interface MatchesDim {
@@ -182,6 +184,7 @@ export interface Payload {
   meta: {
     client: string
     logo_png_b64: string | null
+    logo_svg_b64: string | null
     recon: Recon
   }
   risk: Risk

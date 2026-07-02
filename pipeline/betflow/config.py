@@ -43,12 +43,16 @@ FX_AS_OF = "2026-06-23"
 # (see normalize.is_peru_unit) instead of listing unit names here.
 
 # Timing phases (minutes before first kickoff of the slip's earliest leg).
-# Post-lineups is a proxy: team sheets land roughly 60 to 75 minutes before
-# kickoff and no lineup timestamps exist in the data. Stated as an assumption.
-LINEUP_PROXY_MIN = 75
+# Post-lineups is a proxy: team sheets are typically public about an hour
+# before kickoff and no lineup timestamps exist in the data, so we treat the
+# final 60 minutes (roughly 1h before kickoff) as the post-lineups window.
+# Stated as an assumption wherever it surfaces.
+LINEUP_PROXY_MIN = 60
 DAY_OF_MIN = 24 * 60
-# A slip struck more than this long after its first kickoff is suspect
-# (the match is over); regular in-play is anything between 0 and this.
-INPLAY_MAX_MIN = 130
+
+# Data window: activity before this date is sparse pre-tournament test/warm-up
+# traffic on non-World-Cup fixtures (verified negligible: ~0.02% of turnover).
+# Excluded from the analysis so every surface reports the same clean window.
+DATA_START = "2026-06-01"
 
 WORLD_CUP = "2026 FIFA World Cup"

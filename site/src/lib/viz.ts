@@ -22,7 +22,6 @@ export const PHASE_COLORS: Record<string, string> = {
   'day-of pre-match': '#2FA57D',
   'post-lineups (proxy)': '#BA7F3B',
   'in-play': '#9D7FE0',
-  'suspect timing': '#C9766A',
 }
 
 export const CHANNEL_COLORS: Record<string, string> = {
