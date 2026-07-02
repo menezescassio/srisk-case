@@ -1,0 +1,13 @@
+name: guard
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  client-data-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify no client data, secrets or identifiers are tracked
+        run: bash scripts/guard.sh tracked
