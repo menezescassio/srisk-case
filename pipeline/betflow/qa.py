@@ -36,11 +36,19 @@ def build_recon_payload(
         "slips": int(len(slips)),
         "slips_simple": int((slips["bet_type"] == "SIMPLE").sum()),
         "slips_combined": int((slips["bet_type"] == "COMBINED").sum()),
-        "turnover_eur": round(float(slips["stake_eur"].sum()), 2),
-        "ggr_eur": round(float(slips["ggr_eur"].sum()), 2),
-        "net_revenue_eur": round(float(slips["net_revenue_eur"].sum()), 2),
+        # Totals are computed from per-slip values rounded to the same
+        # precision the dashboard payload carries, so every surface (pipeline
+        # stdout, QA report, dashboard, PDF) sums identical numbers.
+        "turnover_eur": round(float(slips["stake_eur"].round(2).sum()), 2),
+        "ggr_eur": round(float(slips["ggr_eur"].round(2).sum()), 2),
+        "net_revenue_eur": round(float(slips["net_revenue_eur"].round(4).sum()), 2),
         "margin_pct": round(
-            float(slips["ggr_eur"].sum() / slips["stake_eur"].sum() * 100), 2
+            float(
+                slips["ggr_eur"].round(2).sum()
+                / slips["stake_eur"].round(2).sum()
+                * 100
+            ),
+            2,
         ),
         "raw_rows_turnover_eur": round(float(legs["stake_eur"].sum()), 2),
         "raw_rows_ggr_eur": round(float(legs["ggr_eur"].sum()), 2),
