@@ -1,0 +1,17 @@
+name: pipeline-tests
+on:
+  push:
+    branches: [main]
+    paths: ["pipeline/**"]
+  pull_request:
+    paths: ["pipeline/**"]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Run pipeline tests (synthetic fixtures only)
+        run: uv run pytest -q
+        working-directory: pipeline

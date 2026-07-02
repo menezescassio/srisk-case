@@ -1,0 +1,17 @@
+[project]
+name = "betflow-pipeline"
+version = "0.1.0"
+description = "ETL for the Betflow analysis: raw betslip exports to clean slip-level data"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2",
+    "openpyxl>=3.1",
+    "pyarrow>=16",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
