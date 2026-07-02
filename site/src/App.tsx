@@ -7,6 +7,7 @@ import { AppProvider } from './state/AppContext'
 import { Layout, type ViewKey } from './components/Layout'
 import { FilterBar } from './components/FilterBar'
 import { Overview } from './views/Overview'
+import { Flow } from './views/Flow'
 import './shell.css'
 import './dash.css'
 
@@ -80,7 +81,8 @@ export default function App() {
       <Layout view={view} onView={setView} onLock={lock}>
         <FilterBar />
         {view === 'overview' && <Overview />}
-        {view !== 'overview' && (
+        {view === 'flow' && <Flow />}
+        {view !== 'overview' && view !== 'flow' && (
           <div className="view">
             <div className="card">
               <h3 className="card__title">On its way</h3>
