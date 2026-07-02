@@ -637,3 +637,123 @@
 .modal__body {
   overflow: auto;
 }
+
+/* ---------------------------------------------------------------- risk view */
+
+.card--warn {
+  border-color: color-mix(in srgb, var(--bronze-0) 45%, var(--line-0));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bronze-dim) 55%, var(--ink-1)), var(--ink-1) 55%);
+}
+
+.cbars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 22px;
+  width: 52px;
+}
+
+.cbars__col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  background: var(--ink-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.cbars__fill {
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+}
+
+.dim {
+  color: var(--tx-2);
+  font-size: 11px;
+}
+
+.tbl__expand td {
+  background: var(--ink-2);
+  white-space: normal;
+}
+
+.wexp {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 2px;
+}
+
+.wexp__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-size: 12px;
+  color: var(--tx-1);
+}
+
+.wexp__btn {
+  align-self: flex-start;
+  font-size: 12px;
+  color: var(--bronze-1);
+  border: 1px solid var(--line-1);
+  border-radius: 7px;
+  padding: 6px 12px;
+}
+
+.wexp__btn:hover {
+  border-color: var(--bronze-0);
+  color: var(--bronze-2);
+}
+
+.anomalies {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 10px;
+}
+
+.anom {
+  border: 1px solid var(--line-0);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--ink-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.anom--click {
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.anom--click:hover {
+  border-color: var(--bronze-0);
+  transform: translateY(-1px);
+}
+
+.anom__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-0);
+}
+
+.anom__detail {
+  font-size: 12.5px;
+  color: var(--tx-1);
+  line-height: 1.45;
+}
+
+.anom__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 11.5px;
+  color: var(--tx-2);
+}
+
+.anom__open {
+  margin-left: auto;
+  color: var(--bronze-1);
+}

@@ -12,6 +12,7 @@ from .ingest import load_export
 from .normalize import normalize
 from .phases import classify_phases
 from .qa import build_recon_payload, write_qa_report
+from .risk import build_risk
 from .slips import build_slips, duplicate_ambiguity
 
 
@@ -41,8 +42,15 @@ def main() -> None:
     recon_payload = build_recon_payload(recon, legs, slips, dup_stats)
     write_qa_report(recon_payload)
 
+    print("computing risk layer (proxy CLV, sharpness, anomalies)...")
+    risk = build_risk(slips, legs)
+    print(
+        f"  eligible customers: {risk['assumptions']['eligible_customers']:,} | "
+        f"watchlist: {len(risk['watchlist'])} | anomalies: {len(risk['anomalies'])}"
+    )
+
     print("building dashboard payload...")
-    write_payload(build_payload(slips, legs, recon_payload))
+    write_payload(build_payload(slips, legs, recon_payload, risk))
     payload = recon_payload
 
     print("\nheadline (slip-level, EUR):")

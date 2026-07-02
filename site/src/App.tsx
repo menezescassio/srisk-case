@@ -9,6 +9,7 @@ import { FilterBar } from './components/FilterBar'
 import { Overview } from './views/Overview'
 import { Flow } from './views/Flow'
 import { Concentration } from './views/Concentration'
+import { Risk } from './views/Risk'
 import './shell.css'
 import './dash.css'
 
@@ -84,7 +85,8 @@ export default function App() {
         {view === 'overview' && <Overview />}
         {view === 'flow' && <Flow />}
         {view === 'concentration' && <Concentration />}
-        {view !== 'overview' && view !== 'flow' && view !== 'concentration' && (
+        {view === 'risk' && <Risk />}
+        {view === 'findings' && (
           <div className="view">
             <div className="card">
               <h3 className="card__title">On its way</h3>

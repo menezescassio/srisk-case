@@ -62,7 +62,7 @@ CHANNELS = ["online", "retail", "tpv"]
 BET_TYPES = ["SIMPLE", "COMBINED"]
 
 
-def build_payload(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict) -> dict:
+def build_payload(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: dict) -> dict:
     slips = slips.reset_index(drop=True)
     legs = legs.reset_index(drop=True)
 
@@ -106,6 +106,7 @@ def build_payload(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict) -> dict:
             "logo_png_b64": _logo_b64(),
             "recon": recon,
         },
+        "risk": risk,
         "dims": {
             "uids": uid_cats,
             "units": unit_cats,
