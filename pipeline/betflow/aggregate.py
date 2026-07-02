@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 
 import numpy as np
 import pandas as pd
@@ -46,6 +47,30 @@ def _logo_b64() -> str | None:
     return None
 
 
+def _logo_svg_b64() -> str | None:
+    """Dark-variant client mark for the web header. The source SVG centers the
+    wordmark in a large square with lots of dead space, so crop the root
+    viewBox to the inner <image> box and strip fixed width/height so it scales
+    tight to any CSS height. Lives only in gitignored data/raw and ships inside
+    the encrypted payload, never as committed plaintext."""
+    svgs = sorted(RAW_DIR.glob("*-web.svg"))
+    if not svgs:
+        return None
+    svg = svgs[0].read_text()
+    m = re.search(
+        r'<image[^>]*\bx="([\d.]+)"[^>]*\by="([\d.]+)"[^>]*\bwidth="([\d.]+)"[^>]*\bheight="([\d.]+)"',
+        svg,
+    )
+    if m:
+        x, y, w, h = m.groups()
+        svg = re.sub(
+            r'(<svg\b[^>]*?)\sviewBox="[^"]*"', rf'\1 viewBox="{x} {y} {w} {h}"', svg, count=1
+        )
+        svg = re.sub(r'(<svg\b[^>]*?)\swidth="[^"]*"', r"\1", svg, count=1)
+        svg = re.sub(r'(<svg\b[^>]*?)\sheight="[^"]*"', r"\1", svg, count=1)
+    return base64.b64encode(svg.encode()).decode()
+
+
 def _dict_encode(series: pd.Series) -> tuple[list, list[int]]:
     cat = pd.Categorical(series.fillna(""))
     return list(cat.categories), [int(c) for c in cat.codes]
@@ -56,7 +81,6 @@ PHASE_ORDER = [
     "day-of pre-match",
     "post-lineups (proxy)",
     "in-play",
-    "suspect timing",
 ]
 CHANNELS = ["online", "retail", "tpv"]
 BET_TYPES = ["SIMPLE", "COMBINED"]
@@ -104,6 +128,7 @@ def build_payload(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: di
         "meta": {
             "client": _client_name(unit_cats),
             "logo_png_b64": _logo_b64(),
+            "logo_svg_b64": _logo_svg_b64(),
             "recon": recon,
         },
         "risk": risk,

@@ -153,7 +153,10 @@ export function Concentration() {
         <div className="conc__stats num">
           <span>{fmtInt(rows.length)} distinct {DIM_LABEL[dim].toLowerCase()}s</span>
           <span>top 10 hold {fmtPct(top10Share)} of stake</span>
-          <span>Gini {lz.gini.toFixed(3)}</span>
+          <span>
+            Gini {lz.gini.toFixed(3)}
+            <span className="conc__gini"> · {giniReading(lz.gini, DIM_LABEL[dim].toLowerCase())}</span>
+          </span>
         </div>
         <div className="grid2">
           <EChart option={barOption} height={480} />
@@ -293,4 +296,12 @@ export function Concentration() {
       )}
     </div>
   )
+}
+
+/** Plain-language reading of the Gini so a non-technical reader gets it without
+ * knowing the statistic. */
+function giniReading(gini: number, dimLabel: string): string {
+  if (gini < 0.35) return 'money is spread evenly'
+  if (gini < 0.6) return 'moderately concentrated'
+  return `a few ${dimLabel}s dominate`
 }

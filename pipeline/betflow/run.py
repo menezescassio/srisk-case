@@ -5,10 +5,12 @@ Usage: uv run python -m betflow.run   (from pipeline/)
 
 from __future__ import annotations
 
-from .aggregate import build_payload, write_payload
 import json
 
-from .config import FILES, OUT_DIR
+import pandas as pd
+
+from .aggregate import build_payload, write_payload
+from .config import DATA_START, FILES, OUT_DIR
 from .dedup import dedupe
 from .findings import build_findings
 from .ingest import load_export
@@ -35,6 +37,24 @@ def main() -> None:
     print("building slips...")
     slips, legs = build_slips(legs)
     slips = classify_phases(slips)
+
+    # Data-window cut (slip-level, so the excluded figure matches the slip-level
+    # basis used everywhere): drop sparse pre-tournament test/warm-up traffic so
+    # every surface reports the same clean window (documented in the QA report).
+    start = pd.Timestamp(DATA_START)
+    pre = slips[slips["betslip_ts"] < start]
+    excluded = {
+        "rows": int(len(pre)),
+        "stake_eur": round(float(pre["stake_eur"].sum()), 2),
+        "rule": f"betslip date before {DATA_START} (pre-tournament test/warm-up)",
+    }
+    slips = slips[slips["betslip_ts"] >= start].copy()
+    legs = legs[legs["slip_id"].isin(set(slips["slip_id"]))].copy()
+    print(
+        f"  data window >= {DATA_START}: dropped {excluded['rows']:,} pre-tournament "
+        f"slips ({excluded['stake_eur']:,.0f} EUR)"
+    )
+
     dup_stats = duplicate_ambiguity(legs)
     print(f"  slips: {len(slips):,} | legs: {len(legs):,}")
 
@@ -43,6 +63,7 @@ def main() -> None:
     legs.to_parquet(OUT_DIR / "legs.parquet", index=False)
 
     recon_payload = build_recon_payload(recon, legs, slips, dup_stats)
+    recon_payload["excluded_pretournament"] = excluded
     write_qa_report(recon_payload)
 
     print("computing risk layer (proxy CLV, sharpness, anomalies)...")

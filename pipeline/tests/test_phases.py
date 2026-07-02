@@ -16,13 +16,12 @@ def test_phase_boundaries():
         [
             slip(3000),  # > 24h early
             slip(1440),  # exactly 24h -> day-of
-            slip(76),    # day-of
-            slip(75),    # boundary -> post-lineups
+            slip(61),    # just over 1h -> day-of
+            slip(60),    # 1h boundary -> post-lineups
             slip(1),     # post-lineups
             slip(-1),    # in-play
-            slip(-130),  # still in-play window
-            slip(-131),  # match should be over -> suspect
-            slip(None),  # missing kickoff -> suspect
+            slip(-200),  # struck well after kickoff -> still in-play (no suspect bucket)
+            slip(None),  # missing kickoff -> falls through to early pre-match
         ]
     )
     out = classify_phases(df)
@@ -34,6 +33,5 @@ def test_phase_boundaries():
         "post-lineups (proxy)",
         "in-play",
         "in-play",
-        "suspect timing",
-        "suspect timing",
+        "early pre-match",
     ]

@@ -110,6 +110,8 @@ export function Flow() {
         axisLabel: { ...CHART_TEXT, formatter: fmtEurCompact },
         splitLine: { lineStyle: { color: GRID_LINE } },
       },
+      // sliderless zoom: this chart follows the Betflow slider via the shared group
+      dataZoom: [{ type: 'inside' }],
       series: [
         {
           name: 'GGR',
@@ -212,19 +214,20 @@ export function Flow() {
             </button>
           </div>
         </div>
-        <EChart option={mainOption} height={340} />
+        <EChart option={mainOption} height={340} group="betflow-time" />
         <p className="card__note">
           {METRIC_LABEL[metric]}, {hourly ? 'hourly' : 'daily'} buckets, respecting the
           global filters. Drag the slider or scroll to zoom; the tournament starts 2026-06-11.
+          The Daily GGR chart below shares this range.
         </p>
       </div>
 
       <div className="card">
         <h3 className="card__title">Daily GGR (operator view)</h3>
-        <EChart option={ggrOption} height={180} />
+        <EChart option={ggrOption} height={180} group="betflow-time" />
         <p className="card__note">
-          Green days the book won, red days customers won. Settlement is as of the
-          later export (2026-06-24).
+          Green days the book won, red days customers won. Zoom follows the Betflow
+          range slider above. Settlement is as of the later export (2026-06-24).
         </p>
       </div>
 
@@ -291,7 +294,7 @@ export function Flow() {
             <EChart option={fxOption} height={260} />
             <p className="card__note">
               Stake per 30-minute bucket relative to kickoff (last 3 days shown), colored by
-              timing phase. The post-lineups bar is the final 75 minutes.
+              timing phase. The post-lineups bar is the final 60 minutes (about 1h before kickoff).
             </p>
           </div>
         )}

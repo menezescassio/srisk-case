@@ -46,28 +46,27 @@
   color: var(--bronze-0);
 }
 
+/* thin divider between the Betflow wordmark and the client mark */
+.dash__sep {
+  width: 1px;
+  height: 20px;
+  background: var(--line-1);
+  margin: 0 4px;
+}
+
 .dash__client {
-  margin-left: 4px;
-  padding: 3px 10px;
-  border: 1px solid var(--line-1);
-  border-radius: 999px;
+  display: flex;
+  align-items: center;
   font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--tx-1);
-  display: flex;
-  align-items: center;
 }
 
-/* the client wordmark is dark ink on transparent, so give it a light pill */
-.dash__client:has(img) {
-  padding: 4px 11px;
-  background: #f4f1ea;
-  border-color: transparent;
-}
-
+/* the new client mark is a light-on-dark SVG, so it sits directly on the
+   header with no pill */
 .dash__client img {
-  height: 13px;
+  height: 22px;
   display: block;
 }
 
@@ -580,6 +579,12 @@
   font-size: 12px;
   color: var(--tx-1);
   margin-bottom: 12px;
+}
+
+.conc__gini {
+  color: var(--bronze-1);
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .conc__label {

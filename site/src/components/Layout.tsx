@@ -21,7 +21,11 @@ interface Props {
 
 export function Layout({ view, onView, onLock, children }: Props) {
   const { payload } = useApp()
-  const clientLogo = payload.meta.logo_png_b64
+  const clientLogoSrc = payload.meta.logo_svg_b64
+    ? `data:image/svg+xml;base64,${payload.meta.logo_svg_b64}`
+    : payload.meta.logo_png_b64
+      ? `data:image/png;base64,${payload.meta.logo_png_b64}`
+      : null
 
   return (
     <div className="dash">
@@ -31,9 +35,10 @@ export function Layout({ view, onView, onLock, children }: Props) {
           <span className="dash__word">
             Betflow<span className="dot">.</span>
           </span>
+          <span className="dash__sep" aria-hidden="true" />
           <span className="dash__client">
-            {clientLogo ? (
-              <img src={`data:image/png;base64,${clientLogo}`} alt={payload.meta.client} />
+            {clientLogoSrc ? (
+              <img src={clientLogoSrc} alt={payload.meta.client} />
             ) : (
               payload.meta.client
             )}

@@ -32,7 +32,10 @@ def build_recon_payload(
         "settlement_conflicts": recon.settlement_conflicts,
         "conflict_ggr_before": round(recon.conflict_ggr_before, 2),
         "conflict_ggr_after": round(recon.conflict_ggr_after, 2),
-        "union_rows": recon.union_rows,
+        # dedup_union_rows is the full deduped union; union_rows is the analysis
+        # set after the data-window cut (matches the payload's leg table).
+        "dedup_union_rows": recon.union_rows,
+        "union_rows": int(len(legs)),
         "slips": int(len(slips)),
         "slips_simple": int((slips["bet_type"] == "SIMPLE").sum()),
         "slips_combined": int((slips["bet_type"] == "COMBINED").sum()),
@@ -100,6 +103,16 @@ def write_qa_report(payload: dict) -> None:
         f"- GGR: raw-row sum {payload['raw_rows_ggr_eur']:,.0f} EUR -> slip-level **{payload['ggr_eur']:,.0f} EUR**",
         f"- Blended margin (slip-level): **{payload['margin_pct']:.2f}%**",
         f"- Unique customers: {payload['unique_customers']:,}",
+        "",
+        "## Data-window cut (pre-tournament test/warm-up)",
+        "",
+        f"- Deduped union: {payload['dedup_union_rows']:,} rows; excluded "
+        f"{payload['excluded_pretournament']['rows']:,} pre-tournament rows "
+        f"({payload['excluded_pretournament']['stake_eur']:,.0f} EUR) -> "
+        f"{payload['union_rows']:,} analyzed rows.",
+        f"- Rule: {payload['excluded_pretournament']['rule']}. Verified negligible "
+        "and on non-World-Cup competitions; excluded so every surface reports the "
+        "same window.",
         "",
         "## Residual duplicate ambiguity (no betslip id in export)",
         "",

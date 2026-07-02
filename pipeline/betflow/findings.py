@@ -103,6 +103,11 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
     expo = [a for a in risk["anomalies"] if a["type"] == "exposure"]
     top_expo = min(expo, key=lambda a: a["ggr"]) if expo else None
 
+    # bets struck well after kickoff (folded into in-play rather than a suspect bucket)
+    late = slips[slips["lead_minutes"] < -130]
+    late_slips = int(len(late))
+    late_stake = round(float(late["stake_eur"].sum()), 0)
+
     # dual catalog fixtures
     m = legs[["match_id", "match", "event_ts"]].dropna().copy()
     m["day"] = (m["event_ts"] - pd.Timedelta(hours=6)).dt.date
@@ -138,7 +143,7 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
                 f"roughly 95% of turnover sits on tournament fixtures, peaking at {_eur(float(day.loc[peak, 'stake']))} "
                 f"on {peak.date()}.",
                 f"Timing is the defining behavior: {_pct(phase('post-lineups (proxy)', 'share'))} of all stake arrives in the "
-                f"final 75 minutes before kickoff (a post-lineups proxy), at a healthy {_pct(phase('post-lineups (proxy)', 'margin'))} margin. "
+                f"final 60 minutes before kickoff (about an hour out, our post-lineups proxy), at a healthy {_pct(phase('post-lineups (proxy)', 'margin'))} margin. "
                 f"The soft spot is earlier: day-of pre-match money runs at just {_pct(phase('day-of pre-match', 'margin'))} margin "
                 f"and early pre-match is negative at {_pct(phase('early pre-match', 'margin'))}.",
                 f"Product mix decides margin. Team stats ({_pct(float(grp.loc['Team stats', 'margin']))}) and match stats "
@@ -177,6 +182,10 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
                 f"The same real fixture appears under two MatchIds (pre-match and in-play catalogs): {n_ids:,} MatchIds "
                 f"collapse to {n_fx:,} fixtures once merged by name and kickoff day. Two billing tiers are visible in the data "
                 f"(net revenue at {tiers.index[0]*100:.2f}% of GGR on most rows, {tiers.index[1]*100:.2f}% on one regional unit).",
+                f"Activity before {r['betslip_min'][:10]} is sparse pre-tournament test and warm-up traffic on non-World-Cup "
+                f"fixtures ({r['excluded_pretournament']['rows']} betslips, {_eur(r['excluded_pretournament']['stake_eur'])}, "
+                f"about 0.02% of turnover). It is excluded so the dashboard, this report and the reconciliation all describe the "
+                f"same clean window.",
             ],
             "bullets": [],
         },
@@ -234,7 +243,7 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
                 "Three account actions follow directly from the rows: first, a pricing review of the multi-goal scorer ladder "
                 "(2+ and hat trick) into the knockout rounds, where marquee-name inflation meets correlated outcomes; second, a "
                 "combined/BetBuilder margin review, since multiples lost money overall in this window; third, exposure controls in "
-                "the 75-minute post-lineups window, where nearly half the money arrives and where the watchlist customers operate.",
+                "the final-hour post-lineups window, where nearly half the money arrives and where the watchlist customers operate.",
                 f"There is also an upside story to sell, not just a leak to fix: the client's day-of pre-match flow "
                 f"({_pct(phase('day-of pre-match', 'share'))} of stake at {_pct(phase('day-of pre-match', 'margin'))}) is exactly "
                 f"where sharper pricing and Sporting Risk's in-play and micromarket products can lift margin without touching "
@@ -251,7 +260,12 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
                 "same-second slips merge and the affected stake is quantified in the reconciliation.",
                 "No odds history or closing prices: 'proxy CLV' is struck price vs the last struck price on the same selection "
                 "inside this client's own pre-kickoff flow. It measures movement within this flow only.",
-                "Post-lineups is a proxy phase: the final 75 minutes before first kickoff. Lineup timestamps are not in the data.",
+                "Post-lineups is a proxy phase: the final 60 minutes (about an hour) before first kickoff, when team sheets are "
+                "typically public. Lineup timestamps are not in the data.",
+                f"Timing edges are pushed to the real phases rather than a separate suspect bucket: a bet placed after kickoff is "
+                f"treated as in-play however late ({late_slips} betslips, {_eur(late_stake)}, were struck well after kickoff, likely "
+                f"fixture-catalog or late-entry timing), and a bet with an unusable timestamp would fall to early pre-match (none in "
+                f"this window).",
                 "No settlement detail beyond GGR and net revenue per row: cash-outs, partial voids and rounding cannot be separated, "
                 "and a small minority of won combined slips do not reconcile exactly against leg prices.",
                 "FX is fixed at 2026-06-23 reference rates; PEN and USD are about 3% of rows.",
@@ -275,7 +289,7 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
         },
     ]
 
-    phase_order = ["early pre-match", "day-of pre-match", "post-lineups (proxy)", "in-play", "suspect timing"]
+    phase_order = ["early pre-match", "day-of pre-match", "post-lineups (proxy)", "in-play"]
     tables = {
         "phases": [
             {
