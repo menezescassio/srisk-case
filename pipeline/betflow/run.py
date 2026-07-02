@@ -6,8 +6,11 @@ Usage: uv run python -m betflow.run   (from pipeline/)
 from __future__ import annotations
 
 from .aggregate import build_payload, write_payload
+import json
+
 from .config import FILES, OUT_DIR
 from .dedup import dedupe
+from .findings import build_findings
 from .ingest import load_export
 from .normalize import normalize
 from .phases import classify_phases
@@ -49,8 +52,14 @@ def main() -> None:
         f"watchlist: {len(risk['watchlist'])} | anomalies: {len(risk['anomalies'])}"
     )
 
+    print("writing findings...")
+    findings = build_findings(slips, legs, recon_payload, risk)
+    (OUT_DIR / "findings.json").write_text(json.dumps(findings, indent=2))
+
     print("building dashboard payload...")
-    write_payload(build_payload(slips, legs, recon_payload, risk))
+    payload_doc = build_payload(slips, legs, recon_payload, risk)
+    payload_doc["findings"] = findings
+    write_payload(payload_doc)
     payload = recon_payload
 
     print("\nheadline (slip-level, EUR):")

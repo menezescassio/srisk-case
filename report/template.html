@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @page {
+    size: A4;
+    margin: 22mm 18mm 20mm 18mm;
+    @bottom-left {
+      content: "Betflow · client betslip analysis · confidential";
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #8a8f96;
+    }
+    @bottom-right {
+      content: "Prepared by Cassio Menezes · page " counter(page) " of " counter(pages);
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #8a8f96;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 9.6pt;
+    line-height: 1.5;
+    color: #23282e;
+  }
+
+  .mast {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2.4pt solid #2b3036;
+    padding-bottom: 10pt;
+    margin-bottom: 14pt;
+  }
+
+  .mast__left { display: flex; align-items: center; gap: 9pt; }
+  .mast img.sr { width: 34pt; height: 34pt; border-radius: 6pt; }
+  .mast img.client { height: 13pt; }
+
+  .mast__org {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 7pt;
+    letter-spacing: 1.6pt;
+    text-transform: uppercase;
+    color: #6d7681;
+    line-height: 1.6;
+  }
+  .mast__org strong { display: block; font-size: 9pt; color: #23282e; letter-spacing: 1.1pt; }
+
+  h1 {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 21pt;
+    letter-spacing: -0.4pt;
+    color: #23282e;
+    margin: 2pt 0 3pt;
+  }
+  h1 .dot { color: #a17c52; }
+
+  .sub {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+    color: #6d7681;
+    margin-bottom: 12pt;
+  }
+
+  .kpis {
+    display: flex;
+    border: 1pt solid #d8d3ca;
+    border-radius: 6pt;
+    overflow: hidden;
+    margin-bottom: 14pt;
+  }
+  .kpi {
+    flex: 1;
+    padding: 7pt 9pt;
+    border-right: 1pt solid #d8d3ca;
+    background: #faf8f4;
+  }
+  .kpi:last-child { border-right: none; }
+  .kpi__label {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 6.4pt;
+    letter-spacing: 1.2pt;
+    text-transform: uppercase;
+    color: #8a8f96;
+  }
+  .kpi__value {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 11.5pt;
+    color: #23282e;
+    margin-top: 2pt;
+    white-space: nowrap;
+  }
+
+  h2 {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 12pt;
+    color: #23282e;
+    margin: 14pt 0 6pt;
+    padding-top: 6pt;
+  }
+  h2::before { content: ''; display: block; width: 26pt; height: 2.2pt; background: #a17c52; margin-bottom: 5pt; }
+
+  p { margin-bottom: 6pt; text-align: justify; }
+
+  ul { margin: 2pt 0 8pt 14pt; }
+  li { margin-bottom: 4.5pt; text-align: justify; }
+  li::marker { color: #a17c52; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 8pt;
+    margin: 6pt 0 10pt;
+  }
+  th {
+    text-align: left;
+    font-size: 6.6pt;
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+    color: #8a8f96;
+    border-bottom: 1pt solid #2b3036;
+    padding: 3.5pt 5pt;
+  }
+  td { padding: 3.5pt 5pt; border-bottom: 0.5pt solid #e3ded5; }
+  th.r, td.r { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.hl td { background: #f6f1e7; font-weight: bold; }
+  td.neg { color: #a4432f; }
+  td.pos { color: #2e7d5b; }
+
+  .sig {
+    margin-top: 18pt;
+    padding-top: 10pt;
+    border-top: 1pt solid #d8d3ca;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+    color: #23282e;
+  }
+  .sig .role { color: #6d7681; font-size: 8pt; }
+
+  .pagebreak { page-break-before: always; }
+  .avoid { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="mast">
+  <div class="mast__left">
+    {% if sr_logo %}<img class="sr" src="data:image/jpeg;base64,{{ sr_logo }}">{% endif %}
+    <div class="mast__org">
+      <strong>Sporting Risk</strong>
+      Trading · Risk · Client Intelligence
+    </div>
+  </div>
+  <div class="mast__org" style="text-align: right;">
+    {% if client_logo %}<img class="client" src="data:image/png;base64,{{ client_logo }}"><br>{% endif %}
+    client account review
+  </div>
+</div>
+
+<h1>Betflow<span class="dot">.</span> {{ f.title.split(':')[1] }}</h1>
+<div class="sub">Betslip window {{ f.window }} · settlement as of 2026-06-24 · all figures EUR, slip-level · {{ f.generated }}</div>
+
+<div class="kpis">
+  {% for k in f.headline %}
+  <div class="kpi">
+    <div class="kpi__label">{{ k.label }}</div>
+    <div class="kpi__value">{{ k.value }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+{% macro section(s) %}
+  <h2>{{ s.title }}</h2>
+  {% for p in s.paras %}<p>{{ p }}</p>{% endfor %}
+  {% if s.bullets %}
+  <ul>
+    {% for b in s.bullets %}<li>{{ b }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+{% endmacro %}
+
+{{ section(f.sections[0]) }}
+
+{{ section(f.sections[1]) }}
+
+<div class="avoid">
+<table>
+  <thead>
+    <tr><th>source</th><th class="r">rows</th><th class="r">turnover</th><th class="r">GGR</th><th>note</th></tr>
+  </thead>
+  <tbody>
+    {% for row in f.tables.recon %}
+    <tr {% if loop.index > 2 %}class="hl"{% endif %}>
+      <td>{{ row.name }}</td>
+      <td class="r">{{ '{:,.0f}'.format(row.rows) }}</td>
+      <td class="r">€{{ '{:,.0f}'.format(row.turnover) }}</td>
+      <td class="r">€{{ '{:,.0f}'.format(row.ggr) }}</td>
+      <td>{{ row.note }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{{ section(f.sections[2]) }}
+
+<div class="avoid">
+<table>
+  <thead>
+    <tr><th>timing phase</th><th class="r">stake</th><th class="r">share</th><th class="r">GGR</th><th class="r">margin</th></tr>
+  </thead>
+  <tbody>
+    {% for row in f.tables.phases %}
+    <tr>
+      <td>{{ row.name }}</td>
+      <td class="r">€{{ '{:,.0f}'.format(row.stake) }}</td>
+      <td class="r">{{ row.share }}%</td>
+      <td class="r {{ 'neg' if row.ggr < 0 else 'pos' }}">{{ '-€{:,.0f}'.format(-row.ggr) if row.ggr < 0 else '€{:,.0f}'.format(row.ggr) }}</td>
+      <td class="r {{ 'neg' if row.margin < 0 else '' }}">{{ row.margin }}%</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<div class="avoid">
+<table>
+  <thead>
+    <tr><th>product group</th><th class="r">stake</th><th class="r">share</th><th class="r">GGR</th><th class="r">margin</th></tr>
+  </thead>
+  <tbody>
+    {% for row in f.tables.groups %}
+    <tr>
+      <td>{{ row.name }}</td>
+      <td class="r">€{{ '{:,.0f}'.format(row.stake) }}</td>
+      <td class="r">{{ row.share }}%</td>
+      <td class="r {{ 'neg' if row.ggr < 0 else 'pos' }}">{{ '-€{:,.0f}'.format(-row.ggr) if row.ggr < 0 else '€{:,.0f}'.format(row.ggr) }}</td>
+      <td class="r {{ 'neg' if row.margin < 0 else '' }}">{{ row.margin }}%</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{{ section(f.sections[3]) }}
+
+<div class="avoid">
+<table>
+  <thead>
+    <tr><th>#</th><th>uid</th><th class="r">score</th><th class="r">staked</th><th class="r">GGR</th><th class="r">proxy CLV</th><th class="r">post-lineups</th><th>focus</th></tr>
+  </thead>
+  <tbody>
+    {% for w in f.tables.watchlist %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ w.uid }}</td>
+      <td class="r">{{ w.score }}</td>
+      <td class="r">€{{ '{:,.0f}'.format(w.stake) }}</td>
+      <td class="r {{ 'neg' if w.ggr < 0 else 'pos' }}">{{ '-€{:,.0f}'.format(-w.ggr) if w.ggr < 0 else '€{:,.0f}'.format(w.ggr) }}</td>
+      <td class="r">{{ w.clv_pct ~ '%' if w.clv_pct is not none else 'n/a' }}</td>
+      <td class="r">{{ w.lineup_share_pct }}%</td>
+      <td>{{ w.top_group }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{{ section(f.sections[4]) }}
+{{ section(f.sections[5]) }}
+{{ section(f.sections[6]) }}
+
+<div class="sig">
+  {{ f.signature }}<br>
+  <span class="role">Trading, Risk &amp; Client Intelligence case · Sporting Risk</span>
+</div>
+
+</body>
+</html>

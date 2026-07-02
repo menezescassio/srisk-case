@@ -148,6 +148,36 @@ export interface Risk {
   anomalies: Anomaly[]
 }
 
+export interface FindingsSection {
+  id: string
+  title: string
+  paras: string[]
+  bullets: string[]
+}
+
+export interface Findings {
+  title: string
+  window: string
+  generated: string
+  headline: { label: string; value: string }[]
+  sections: FindingsSection[]
+  tables: {
+    phases: { name: string; stake: number; share: number; ggr: number; margin: number }[]
+    groups: { name: string; stake: number; share: number; ggr: number; margin: number }[]
+    watchlist: {
+      uid: string
+      score: number
+      stake: number
+      ggr: number
+      clv_pct: number | null
+      lineup_share_pct: number
+      top_group: string
+    }[]
+    recon: { name: string; rows: number; turnover: number; ggr: number; note: string }[]
+  }
+  signature: string
+}
+
 export interface Payload {
   meta: {
     client: string
@@ -155,6 +185,7 @@ export interface Payload {
     recon: Recon
   }
   risk: Risk
+  findings: Findings
   dims: Dims
   slips: SlipCols
   legs: LegCols

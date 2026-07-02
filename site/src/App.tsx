@@ -10,6 +10,7 @@ import { Overview } from './views/Overview'
 import { Flow } from './views/Flow'
 import { Concentration } from './views/Concentration'
 import { Risk } from './views/Risk'
+import { Findings } from './views/Findings'
 import './shell.css'
 import './dash.css'
 
@@ -86,17 +87,7 @@ export default function App() {
         {view === 'flow' && <Flow />}
         {view === 'concentration' && <Concentration />}
         {view === 'risk' && <Risk />}
-        {view === 'findings' && (
-          <div className="view">
-            <div className="card">
-              <h3 className="card__title">On its way</h3>
-              <p className="card__lead">
-                This view ships in an upcoming PR today. Overview is live; Betflow,
-                Concentration, Risk and Findings land in sequence.
-              </p>
-            </div>
-          </div>
-        )}
+        {view === 'findings' && <Findings />}
       </Layout>
     </AppProvider>
   )
