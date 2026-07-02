@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Guard: no client data tracked
+      - name: Verify no client data is tracked
         run: bash scripts/guard.sh tracked
       - uses: actions/setup-node@v4
         with:
