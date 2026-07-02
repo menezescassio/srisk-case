@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Gate } from './gate/Gate'
-import { verifyPassword, type Sentinel } from './lib/artifacts'
+import { verifyPassword } from './lib/artifacts'
+import { loadPayload, type Payload } from './lib/payload'
 import { getSessionPassword, clearSession } from './lib/session'
 import logo from './assets/sporting-risk-logo.jpeg'
 import './shell.css'
@@ -8,10 +9,25 @@ import './shell.css'
 type State =
   | { kind: 'checking' }
   | { kind: 'locked' }
-  | { kind: 'open'; password: string; sentinel: Sentinel }
+  | { kind: 'loading' }
+  | { kind: 'open'; payload: Payload }
+  | { kind: 'error'; message: string }
 
 export default function App() {
   const [state, setState] = useState<State>({ kind: 'checking' })
+
+  async function open(password: string) {
+    setState({ kind: 'loading' })
+    try {
+      const payload = await loadPayload(password)
+      setState({ kind: 'open', payload })
+    } catch {
+      setState({
+        kind: 'error',
+        message: 'Payload decryption failed. Lock and try again.',
+      })
+    }
+  }
 
   useEffect(() => {
     const saved = getSessionPassword()
@@ -20,11 +36,12 @@ export default function App() {
       return
     }
     verifyPassword(saved)
-      .then((sentinel) => setState({ kind: 'open', password: saved, sentinel }))
+      .then(() => open(saved))
       .catch(() => {
         clearSession()
         setState({ kind: 'locked' })
       })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (state.kind === 'checking') {
@@ -32,14 +49,38 @@ export default function App() {
   }
 
   if (state.kind === 'locked') {
+    return <Gate onUnlock={(password) => void open(password)} />
+  }
+
+  if (state.kind === 'loading') {
     return (
-      <Gate
-        onUnlock={(password, sentinel) =>
-          setState({ kind: 'open', password, sentinel })
-        }
-      />
+      <div className="boot boot--busy">
+        <span className="num">decrypting payload…</span>
+      </div>
     )
   }
+
+  if (state.kind === 'error') {
+    return (
+      <div className="boot boot--busy">
+        <span className="num">{state.message}</span>
+        <button
+          className="shell__lock"
+          onClick={() => {
+            clearSession()
+            setState({ kind: 'locked' })
+          }}
+        >
+          Lock
+        </button>
+      </div>
+    )
+  }
+
+  const { payload } = state
+  const r = payload.meta.recon
+  const eur = (v: number) =>
+    v.toLocaleString('en-GB', { maximumFractionDigits: 0 })
 
   return (
     <div className="shell">
@@ -49,6 +90,7 @@ export default function App() {
           <span className="shell__word">
             Betflow<span className="dot">.</span>
           </span>
+          <span className="shell__client num">{payload.meta.client}</span>
         </div>
         <button
           className="shell__lock"
@@ -62,14 +104,16 @@ export default function App() {
       </header>
       <main className="shell__main">
         <div className="shell__card">
-          <h2>Payload decrypted</h2>
+          <h2>Payload decrypted and parsed</h2>
           <p>
-            The access key was verified against the encrypted sentinel in your
-            browser. Dashboard views land with the next PRs; this page proves
-            the gate, the crypto and the deploy pipeline end to end.
+            Slip and leg tables are in memory. The dashboard views land in the
+            next PRs; the numbers below prove the payload end to end.
           </p>
           <p className="num shell__meta">
-            sentinel built {new Date(state.sentinel.builtAt).toUTCString()}
+            {r.slips.toLocaleString()} slips · {r.union_rows.toLocaleString()}{' '}
+            legs · turnover €{eur(r.turnover_eur)} · GGR €{eur(r.ggr_eur)} ·
+            margin {r.margin_pct.toFixed(2)}% · {r.unique_customers.toLocaleString()}{' '}
+            customers
           </p>
         </div>
       </main>
