@@ -119,6 +119,35 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
     ratio = (nz["net_revenue_eur"] / nz["ggr_eur"]).round(4)
     tiers = ratio.value_counts().head(2)
 
+    # COMBINED composition: two data-quality flags (see the data-quality section).
+    # n_legs here is the raw leg-row count per slip; n_matches the distinct games.
+    total_stake = float(slips["stake_eur"].sum())
+    comb = slips[slips["bet_type"] == "COMBINED"]
+    comb_margin = float(bt.loc["COMBINED", "margin"]) if "COMBINED" in bt.index else 0.0
+    comb_single = comb[comb["n_legs"] == 1]
+    comb_same_game = comb[(comb["n_legs"] >= 2) & (comb["n_matches"] == 1)]
+    comb_cross = comb[comb["n_matches"] >= 2]
+
+    def _stake(df_: pd.DataFrame) -> float:
+        return float(df_["stake_eur"].sum())
+
+    def _share(df_: pd.DataFrame) -> float:
+        return _stake(df_) / total_stake * 100 if total_stake else 0.0
+
+    def _margin(df_: pd.DataFrame) -> float:
+        s = _stake(df_)
+        return float(df_["ggr_eur"].sum()) / s * 100 if s else 0.0
+
+    # distinct selections per slip -> evidence that same-game combined slips are
+    # the identical selection repeated, not 2+ distinct legs.
+    _sel_key = (
+        legs["match_id"].astype(str) + "|" + legs["market_raw"].astype(str)
+        + "|" + legs["option_raw"].astype(str) + "|" + legs["price"].astype(str)
+    )
+    distinct_sel = legs.assign(_sel=_sel_key).groupby("slip_id")["_sel"].nunique()
+    sg_distinct = distinct_sel[distinct_sel.index.isin(set(comb_same_game["slip_id"]))]
+    sg_dup_share = float((sg_distinct == 1).mean() * 100) if len(sg_distinct) else 0.0
+
     r = recon
     window = f"{r['betslip_min'][:10]} to {r['betslip_max'][:10]}"
 
@@ -186,6 +215,31 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
                 f"fixtures ({r['excluded_pretournament']['rows']} betslips, {_eur(r['excluded_pretournament']['stake_eur'])}, "
                 f"about 0.02% of turnover). It is excluded so the dashboard, this report and the reconciliation all describe the "
                 f"same clean window.",
+            ],
+            "bullets": [],
+        },
+        {
+            "id": "bettype_quality",
+            "title": "Reading the SIMPLE/COMBINED split: two data-quality flags",
+            "paras": [
+                f"We report bet type using the operator's own SIMPLE/COMBINED flag, but that flag should be read with care: "
+                f"the {_eur(_stake(comb))} of COMBINED stake at {_pct(comb_margin)} margin is not one product, it is three "
+                f"different things, and two of them are data-quality artifacts worth flagging to the trading and data teams.",
+                f"Flag 1, observed: roughly half of COMBINED betslips carry a single selection. {len(comb_single):,} combined "
+                f"slips ({_pct(_share(comb_single))} of total turnover) have just one leg and look like ordinary "
+                f"single-selection prop bets that happen to be flagged COMBINED. The likely cause is a hypothesis (single bets "
+                f"placed through the combined/BetBuilder product, or cash-out remnants that leave one active leg); we cannot "
+                f"confirm it without betslip IDs.",
+                f"Flag 2, a hypothesis: same-game 'builders' arrive as a repeated identical selection. Every COMBINED slip whose "
+                f"legs are all on one game ({len(comb_same_game):,} slips, {_pct(_share(comb_same_game))} of turnover) shows the "
+                f"exact same selection repeated ({sg_dup_share:.0f}% have a single distinct selection), never two or more distinct "
+                f"same-game legs. Our reading, stated as a hypothesis and not a certainty: these are genuine same-game BetBuilders "
+                f"whose distinct legs the export masked by duplicating one leg, so the individual selections and the true combined "
+                f"odds are not recoverable from this feed.",
+                f"What is clean is the rest: true cross-game accumulators ({len(comb_cross):,} slips, {_pct(_share(comb_cross))} of "
+                f"turnover) run at {_pct(_margin(comb_cross))} margin, the book comfortably beating multi-game parlays. So the "
+                f"headline COMBINED margin blends duplicated singles, masked same-game builders and these genuine multis; it should "
+                f"not be read as a single product's performance.",
             ],
             "bullets": [],
         },
@@ -258,6 +312,10 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
             "bullets": [
                 "No betslip IDs exist, so combined slips are grouped by (customer, timestamp, stake, settlement); identical "
                 "same-second slips merge and the affected stake is quantified in the reconciliation.",
+                f"The COMBINED flag is not a clean product: about half of combined slips ({len(comb_single):,}) carry a single "
+                f"selection, and same-game combined slips ({len(comb_same_game):,}) arrive as a repeated identical leg rather than "
+                f"distinct selections. Per-selection detail and true builder odds for same-game bets are therefore not recoverable "
+                f"from this feed (see the data-quality section); figures that touch combined slips inherit this.",
                 "No odds history or closing prices: 'proxy CLV' is struck price vs the last struck price on the same selection "
                 "inside this client's own pre-kickoff flow. It measures movement within this flow only.",
                 "Post-lineups is a proxy phase: the final 60 minutes (about an hour) before first kickoff, when team sheets are "
@@ -277,8 +335,10 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
             "title": "What I'd do next",
             "paras": [],
             "bullets": [
-                "Data access: odds history and true closing prices (turns proxy CLV into real CLV), betslip IDs (kills the slip-grouping "
-                "ambiguity), settlement detail incl. cash-outs, lineup publication timestamps, and customer metadata (registration date, limits).",
+                "Data access: odds history and true closing prices (turns proxy CLV into real CLV), betslip IDs and selection-level "
+                "(per-leg) detail (separates single-selection combined bets and reassembles same-game builders masked as duplicated "
+                "legs, recovering true combined odds), settlement detail incl. cash-outs, lineup publication timestamps, and customer "
+                "metadata (registration date, limits).",
                 "Always-on: this pipeline is already reproducible end to end; schedule it on each report drop, alert on new watchlist "
                 "entrants, price-drift flags and negative-pocket growth, and keep the dashboard as the desk's standing view of the account.",
                 "Modeling: player-level exposure by fixture (the Messi case as a class), a combined-slip pricing audit against SR's own "
