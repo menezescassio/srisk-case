@@ -179,12 +179,14 @@ function ReconCard() {
           {(1 / r.fx.rates_to_eur.USD).toFixed(3)} per EUR; {fmtInt(r.currency_rows_inferred)}{' '}
           null-currency rows inferred from unit geography.
         </li>
-        <li>
-          Analysis window starts {r.betslip_min.slice(0, 10)}: {fmtInt(r.excluded_pretournament.rows)}{' '}
-          sparse pre-tournament test bets ({fmtEur(r.excluded_pretournament.stake_eur)}, about 0.02% of
-          turnover, on non-World-Cup fixtures) are excluded so the dashboard, findings and PDF describe
-          the same clean window.
-        </li>
+        {r.excluded_pretournament && (
+          <li>
+            Analysis window starts {r.betslip_min.slice(0, 10)}: {fmtInt(r.excluded_pretournament.rows)}{' '}
+            sparse pre-tournament test bets ({fmtEur(r.excluded_pretournament.stake_eur)}, about 0.02% of
+            turnover, on non-World-Cup fixtures) are excluded so the dashboard, findings and PDF describe
+            the same clean window.
+          </li>
+        )}
       </ul>
       <p className="card__note">
         * File A and B raw sums are in mixed original currencies; union figures are EUR.

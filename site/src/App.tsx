@@ -33,6 +33,8 @@ export default function App() {
     setState({ kind: 'loading' })
     try {
       const payload = await loadPayload(password)
+      // booted cleanly: re-arm the ErrorBoundary's one-shot chunk-reload guard
+      sessionStorage.removeItem('betflow.chunkReloaded')
       setState({ kind: 'open', payload })
     } catch {
       setState({ kind: 'error', message: 'Payload decryption failed. Lock and try again.' })
