@@ -111,6 +111,12 @@ export class Store {
   readonly legStakeAttr: Float64Array
   readonly legGgrAttr: Float64Array
 
+  /** The export catalogs the same real fixture under separate MatchIds for
+   * pre-match and in-play. Fixtures are merged by (name, kickoff date):
+   * matchGroupOf maps a match index to its merged fixture group. */
+  readonly matchGroupOf: Int32Array
+  readonly fixtureGroups: { name: string; kickoff: number; competition: number; matchIdxs: number[] }[]
+
   constructor(p: Payload) {
     this.p = p
     this.nSlips = p.slips.ts.length
@@ -156,6 +162,34 @@ export class Store {
       const n = this.sNLegs[s]
       this.legStakeAttr[i] = this.sStake[s] / n
       this.legGgrAttr[i] = this.sGgr[s] / n
+    }
+
+    // merge duplicate MatchIds (pre-match vs in-play catalogs)
+    const nM = p.dims.matches.name.length
+    this.matchGroupOf = new Int32Array(nM).fill(-1)
+    this.fixtureGroups = []
+    const groupByKey = new Map<string, number>()
+    for (let m = 0; m < nM; m++) {
+      const ko = p.dims.matches.kickoff[m]
+      // day boundary shifted to 06:00 UTC: this tournament has 02:00 UTC
+      // kickoffs, and the two catalogs can disagree by minutes across midnight
+      const day = ko > 0 ? Math.floor((ko - 6 * 3600) / 86400) : -1
+      const key = `${p.dims.matches.name[m]}|${day}`
+      let g = groupByKey.get(key)
+      if (g === undefined) {
+        g = this.fixtureGroups.length
+        groupByKey.set(key, g)
+        this.fixtureGroups.push({
+          name: p.dims.matches.name[m],
+          kickoff: ko,
+          competition: p.dims.matches.competition[m],
+          matchIdxs: [],
+        })
+      }
+      const grp = this.fixtureGroups[g]
+      grp.matchIdxs.push(m)
+      if (ko > 0 && (grp.kickoff <= 0 || ko < grp.kickoff)) grp.kickoff = ko
+      this.matchGroupOf[m] = g
     }
   }
 
