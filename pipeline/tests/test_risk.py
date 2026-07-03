@@ -53,3 +53,35 @@ def test_risk_payload_shape_and_thresholds(legs_frame):
     assert 0 <= risk["watchlist"][0]["score"] <= 100
     comp = risk["watchlist"][0]["components"]
     assert set(comp) == {"clv", "win", "lineup", "stake", "focus"}
+
+
+def test_turnover_spike_flags_a_jump(legs_frame):
+    rows = []
+    for i, st in enumerate([1000, 1200, 900, 1100, 1000, 1300, 800, 1050]):
+        d = pd.Timestamp("2026-06-01") + pd.Timedelta(days=i)
+        rows.append(make_leg(uid=f"b{i}", stake=float(st), ggr=float(st), match_id=1,
+                             match="Alpha - Beta",
+                             betslip_ts=d + pd.Timedelta(hours=10),
+                             event_ts=d + pd.Timedelta(hours=12)))
+    spike_day = pd.Timestamp("2026-06-09")
+    rows.append(make_leg(uid="spk", stake=50000.0, ggr=50000.0, match_id=2,
+                         match="Gamma - Delta",
+                         betslip_ts=spike_day + pd.Timedelta(hours=10),
+                         event_ts=spike_day + pd.Timedelta(hours=12)))
+    slips, legs = _prep(legs_frame, rows)
+    spikes = [a for a in build_risk(slips, legs)["anomalies"] if a["type"] == "turnover_spike"]
+    hit = [a for a in spikes if str(spike_day.date()) in a["title"]]
+    assert hit, "spike day not flagged"
+    assert "Gamma - Delta" in hit[0]["detail"]  # driver fixture named
+
+
+def test_flat_turnover_no_spike(legs_frame):
+    rows = []
+    for i in range(10):
+        d = pd.Timestamp("2026-06-01") + pd.Timedelta(days=i)
+        rows.append(make_leg(uid=f"f{i}", stake=20000.0, ggr=20000.0, match_id=1,
+                             betslip_ts=d + pd.Timedelta(hours=10),
+                             event_ts=d + pd.Timedelta(hours=12)))
+    slips, legs = _prep(legs_frame, rows)
+    risk = build_risk(slips, legs)
+    assert not any(a["type"] == "turnover_spike" for a in risk["anomalies"])

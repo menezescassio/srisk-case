@@ -123,17 +123,22 @@ def sharpness(slips: pd.DataFrame, clv_legs: pd.DataFrame) -> pd.DataFrame:
     # (passed in via clv_legs' parent frame is insufficient; recomputed later
     # by caller and merged: see build_risk)
 
-    # proxy CLV per uid (stake-weighted)
-    c = clv_legs.groupby("uid").apply(
-        lambda x: pd.Series(
-            {
-                "clv": float(np.average(x["proxy_clv"], weights=np.maximum(x["stake_attr"], 0.01))),
-                "clv_legs": int(len(x)),
-            }
-        ),
-        include_groups=False,
-    )
-    u = u.join(c, how="left")
+    # proxy CLV per uid (stake-weighted). Guard the empty case: an empty
+    # groupby-apply returns the input's columns, which would collide with u on
+    # join. When no price-eligible legs exist, fall back to empty clv columns.
+    if len(clv_legs):
+        c = clv_legs.groupby("uid").apply(
+            lambda x: pd.Series(
+                {
+                    "clv": float(np.average(x["proxy_clv"], weights=np.maximum(x["stake_attr"], 0.01))),
+                    "clv_legs": int(len(x)),
+                }
+            ),
+            include_groups=False,
+        )
+    else:
+        c = pd.DataFrame(columns=["clv", "clv_legs"])
+    u = u.join(c[["clv", "clv_legs"]], how="left")
     u["clv_legs"] = u["clv_legs"].fillna(0).astype(int)
 
     eligible = (u["slips"] >= UID_MIN_SLIPS) & (u["stake"] >= UID_MIN_STAKE_EUR)
@@ -308,6 +313,47 @@ def build_risk(slips: pd.DataFrame, legs: pd.DataFrame) -> dict:
                 "ggr": round(float(r["ggr"]), 2),
                 "n_uids": int(r["n_uids"]),
                 "metric": round(float(r["margin"]) * 100, 1),
+            }
+        )
+
+    # 5. turnover spikes: a day whose turnover jumps above its own trailing
+    # baseline. Robust rule: trailing-7-day median + MAD on the prior days, so
+    # only jumps beyond the local trend fire (the tournament onset surge is the
+    # first such jump). A 10k floor keeps the sparse early days from flagging.
+    daily = (
+        slips.assign(day=slips["betslip_ts"].dt.floor("D"))
+        .groupby("day")
+        .agg(stake=("stake_eur", "sum"), ggr=("ggr_eur", "sum"), n_uids=("uid", "nunique"))
+        .sort_index()
+    )
+    prior = daily["stake"].shift(1)
+    base = prior.rolling(7, min_periods=3).median()
+    mad = prior.rolling(7, min_periods=3).apply(
+        lambda w: np.median(np.abs(w - np.median(w))), raw=True
+    )
+    sigma = 1.4826 * mad
+    daily["base"] = base
+    daily["z"] = (daily["stake"] - base) / sigma.replace(0, np.nan)
+    spikes = daily[(daily["z"] >= 3) & (daily["stake"] >= 10_000) & base.notna()]
+    df_day = df["betslip_ts"].dt.floor("D")
+    for day, r in spikes.sort_values("z", ascending=False).head(10).iterrows():
+        fx = df.loc[df_day == day].groupby("match")["stake_attr"].sum().sort_values(ascending=False)
+        driver = str(fx.index[0]) if len(fx) else "n/a"
+        driver_stake = float(fx.iloc[0]) if len(fx) else 0.0
+        mult = float(r["stake"] / r["base"]) if r["base"] else 0.0
+        anomalies.append(
+            {
+                "type": "turnover_spike",
+                "sel_key": None,
+                "title": f"{day.date()}: turnover spike",
+                "detail": (
+                    f"{r['stake']:,.0f} EUR staked, {mult:.1f}x the trailing 7-day baseline "
+                    f"({r['base']:,.0f} EUR); led by {driver} ({driver_stake:,.0f} EUR)"
+                ),
+                "stake": round(float(r["stake"]), 2),
+                "ggr": round(float(r["ggr"]), 2),
+                "n_uids": int(r["n_uids"]),
+                "metric": round(mult, 1),
             }
         )
 
