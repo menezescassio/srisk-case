@@ -25,6 +25,11 @@ const ANOMALY_META: Record<AnomalyType, { label: string; blurb: string }> = {
     label: 'Negative-margin pockets',
     blurb: 'Market and competition cells where this client is structurally losing.',
   },
+  turnover_spike: {
+    label: 'Turnover spikes',
+    blurb:
+      "Days whose turnover jumps 3+ robust deviations above the trailing 7-day baseline. The first flag is the tournament onset surge; later ones are days that broke their local trend. Each names the fixture that drove it (open it in the Betflow tab).",
+  },
 }
 
 export function Risk() {

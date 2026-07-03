@@ -123,7 +123,12 @@ export interface WatchlistEntry {
   components: { clv: number; win: number; lineup: number; stake: number; focus: number }
 }
 
-export type AnomalyType = 'price_drift' | 'repeated_support' | 'exposure' | 'negative_pocket'
+export type AnomalyType =
+  | 'price_drift'
+  | 'repeated_support'
+  | 'exposure'
+  | 'negative_pocket'
+  | 'turnover_spike'
 
 export interface Anomaly {
   type: AnomalyType

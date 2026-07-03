@@ -281,7 +281,9 @@ def build_findings(slips: pd.DataFrame, legs: pd.DataFrame, recon: dict, risk: d
                     if top_expo
                     else ""
                 )
-                + f"; and the structural pocket, 'to score 2 or more goals', {_eur(m2_ggr)} across the tournament. "
+                + f"; the structural pocket, 'to score 2 or more goals', {_eur(m2_ggr)} across the tournament; and daily "
+                f"turnover spikes flagged against a rolling baseline (the tournament onset and any day that breaks its local "
+                f"trend, each linked to the fixture that drove it). "
                 f"{worst.date()} alone ({_eur(float(day.loc[worst, 'ggr']))}) shows what correlated marquee results do to this book.",
             ],
             "bullets": [],
